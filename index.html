@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Search App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #searchBox {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #results {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .movie-title {
+            cursor: pointer;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        .movie-title:hover {
+            background-color: #f0f0f0;
+        }
+        #movieDetails {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Movie Search App</h1>
+    <input type="text" id="searchBox" placeholder="Enter movie title...">
+    <div id="results"></div>
+    <div id="movieDetails"></div>
+
+    <script>
+        const apiKey = '473e9cc6';  
+        const searchBox = document.getElementById('searchBox');
+        const resultsDiv = document.getElementById('results');
+        const movieDetailsDiv = document.getElementById('movieDetails');
+
+        let timeoutId;
+
+        searchBox.addEventListener('input', () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                const query = searchBox.value.trim();
+                if (query) {
+                    searchMovies(query);
+                }
+            }, 500);  
+        });
+
+        async function searchMovies(query) {
+            const response = await fetch(`http://www.omdbapi.com/?apikey=${apiKey}&s=${query}`);
+            const data = await response.json();
+            displayResults(data.Search);
+        }
+
+        function displayResults(movies) {
+            resultsDiv.innerHTML = '';
+            if (movies) {
+                movies.forEach(movie => {
+                    const div = document.createElement('div');
+                    div.className = 'movie-title';
+                    div.textContent = movie.Title;
+                    div.addEventListener('click', () => {
+                        fetchMovieDetails(movie.imdbID);
+                    });
+                    resultsDiv.appendChild(div);
+                });
+            } else {
+                resultsDiv.innerHTML = 'No results found';
+            }
+        }
+
+        async function fetchMovieDetails(imdbID) {
+            const response = await fetch(`http://www.omdbapi.com/?apikey=${apiKey}&i=${imdbID}`);
+            const data = await response.json();
+            displayMovieDetails(data);
+        }
+
+        function displayMovieDetails(movie) {
+            movieDetailsDiv.innerHTML = `
+                <h2>${movie.Title}</h2>
+                <p><strong>Year:</strong> ${movie.Year}</p>
+                <p><strong>Genre:</strong> ${movie.Genre}</p>
+                <p><strong>Director:</strong> ${movie.Director}</p>
+                <p><strong>Actors:</strong> ${movie.Actors}</p>
+                <p><strong>Plot:</strong> ${movie.Plot}</p>
+                <img src="${movie.Poster}" alt="${movie.Title} Poster" style="max-width: 200px;">
+            `;
+        }
+    </script>
+</body>
+</html>
